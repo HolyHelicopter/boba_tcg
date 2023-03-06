@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Boba TCG</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+    <style>
+
+        * {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        #main_container {
+            width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            overflow: hidden;
+        }
+
+        #main_container:after,
+        #main_container:before {
+            clear: both;
+        }
+
+        .main-container-block {
+            float: left;
+        }
+
+        #left-column-block {
+            width: 270px;
+        }
+
+        #card_preview_container {
+            width: 270px;
+            min-height: 385px;
+            border: 2px solid black;
+            border-radius: 5px;
+        }
+
+        #card_preview_img {
+            width: 100%;
+        }
+
+        #deck-list-block {
+            width: 630px;
+        }
+
+        #deck-list-block-upper {
+            min-height: 20px;
+        }
+
+        #deck-list-textarea-container {
+
+        }
+
+        #deck-list-textarea {
+            resize: none;
+            width: 100%;
+        }
+
+        #search-block {
+            width: 300px;
+        }
+
+        .search-block-filter-item {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        #search-block-results:after,
+        #search-block-results:before {
+            clear: both;
+        }
+
+        .search-block-card-box {
+            width: 100px;
+            float: left;
+        }
+
+        .deck-list-block-card-box {
+            width: 100px;
+            overflow: hidden;
+            margin-bottom: 3px;
+        }
+
+        .search-block-card-img {
+            width: 75px;
+            border: 1px solid black;
+            border-radius: 5px;
+            float: left;
+        }
+
+        .deck-list-block-card-img {
+            width: 75px;
+            border: 1px solid black;
+            border-radius: 5px;
+            float: left;
+        }
+
+        .search-block-card-nums {
+            float: left;
+            padding-top: 8px;
+        }
+
+        .deck-list-block-card-nums {
+            float: left;
+            padding-top: 8px;
+        }
+
+        .search-block-card-nums button {
+            display: block;
+            cursor: pointer;
+        }
+
+        .deck-list-block-card-nums button {
+            display: block;
+            cursor: pointer;
+        }
+
+        #pages-block {
+            margin-bottom: 5px;
+        }
+
+        #pages-block button {
+            cursor: pointer;
+        }
+
+        #pages-block button.selected_page {
+            color: blue;
+            font-weight: bold;
+        }
+
+        .card_amount_in_deck {
+            color: blue;
+            font-weight: bold;
+        }
+
+        #deck-total-container {
+            font-size: 24px;
+        }
+
+        #deck-total{
+            font-weight: bold;
+        }
+
+        .left-colum-block-section {
+            margin-bottom: 5px;
+        }
+
+        .deck-list-column {
+            width: 100px;
+            float: left;
+            min-height: 10px;
+        }
+
+        #deck-list-column-items {
+            margin-left: 46px;
+        }
+
+        #deck-list-column-items,
+        #deck-list-column-small,
+        #deck-list-column-mid {
+            margin-right: 46px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="main_container">
+
+    <div class="main-container-block" id="left-column-block">
+        <div id="deck-total-container" class="left-colum-block-section">
+            Всего карт в колоде: <span id="deck-total">0</span>
+        </div>
+
+        <div id="card_preview_container" class="left-colum-block-section">
+            <img id="card_preview_img" src="">
+        </div>
+
+        <div id="deck-list-textarea-container" class="left-colum-block-section">
+            <button onclick="import_to_text()">Импорт в текст</button>
+            <button onclick="export_from_text()">Экспорт из текста</button>
+            <textarea id="deck-list-textarea" cols="40" rows="15"></textarea>
+        </div>
+    </div>
+
+    <div class="main-container-block" id="deck-list-block">
+
+        <div id="deck-list-block-upper">
+
+            <div class="deck-list-column" id="deck-list-column-items">
+            </div>
+
+            <div class="deck-list-column" id="deck-list-column-small">
+            </div>
+
+            <div class="deck-list-column" id="deck-list-column-mid">
+            </div>
+
+            <div class="deck-list-column" id="deck-list-column-big">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="main-container-block" id="search-block">
+
+        <input type="text" class="search-block-filter-item" id="filter-text" placeholder="поиск по названию" onchange="update_filters()">
+
+        <br>
+
+        <select class="search-block-filter-item" id="filter-card-type" onchange="update_filters()">
+            <option value="">Все Типы</option>
+            <option value="Монстр">Монстр</option>
+            <option value="Предмет">Предмет</option>
+        </select>
+
+        <br>
+
+        <select class="search-block-filter-item" id="filter-size" onchange="update_filters()">
+            <option value="">Все Размеры</option>
+            <option value="Малый">Малый</option>
+            <option value="Средний">Средний</option>
+            <option value="Большой">Большой</option>
+        </select>
+
+        <br>
+
+        <select class="search-block-filter-item" id="filter-race" onchange="update_filters()">
+            <option value="">Все Расы</option>
+        </select>
+
+        <br>
+
+        <select class="search-block-filter-item" id="filter-element" onchange="update_filters()">
+            <option value="">Все Элементы</option>
+        </select>
+
+        <br>
+
+        <div id="pages-block">
+        </div>
+
+        <div id="search-block-results">
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    function import_to_text () {
+        var items = [];
+        var small = [];
+        var mid = [];
+        var big = [];
+
+        $.each(window.deck_list, function (card_name, card_amount) {
+            var card_data = window.card_pool[card_name];
+
+            if (card_data['Тип'] === 'Предмет') {
+
+                items.push(card_name);
+
+            } else if (card_data['Тип'] === 'Монстр') {
+
+                if (card_data['Размер'] === 'Малый') {
+                    small.push(card_name);
+                } else if (card_data['Размер'] === 'Средний') {
+                    mid.push(card_name);
+                } else if (card_data['Размер'] === 'Большой') {
+                    big.push(card_name);
+                }
+
+            }
+        });
+
+        var text_for_textarea = '';
+
+        [
+            items,
+            small,
+            mid,
+            big
+        ].forEach(function (cards) {
+            cards.sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase())
+            });
+
+            cards.forEach(function (card_name) {
+                var amount_in_deck = get_amount_in_deck(card_name);
+                if (text_for_textarea) {
+                    text_for_textarea += '\n';
+                }
+                text_for_textarea += amount_in_deck + ' ' + card_name;
+            });
+        });
+
+        $('#deck-list-textarea').val(text_for_textarea);
+    }
+
+    function export_from_text () {
+        window.deck_list = {};
+
+        var deck_from_text = $('#deck-list-textarea').val().split('\n');
+
+        deck_from_text.forEach(function (card_string) {
+            if (card_string) {
+                var split_arr = card_string.split(' ');
+                var amount = split_arr.shift();
+                amount = parseInt(amount);
+                var name = split_arr.join(' ');
+
+                if (name in window.card_pool) {
+                    window.deck_list[name] = amount;
+                }
+            }
+        });
+
+        draw_deck_list_block();
+    }
+
+    function clear_textarea () {
+        $('#deck-list-textarea').val('');
+    }
+
+    function change_preview(card_name) {
+        $('#card_preview_img').attr('src', window.card_pool[card_name]['Картинка']);
+    }
+
+    function get_amount_in_deck (card_name) {
+        if (card_name in window.deck_list) {
+            return window.deck_list[card_name];
+        }
+        return 0;
+    }
+
+    function draw_deck_list_block () {
+
+        clear_textarea();
+
+        var items = [];
+        var small = [];
+        var mid = [];
+        var big = [];
+
+        var cards_total = 0;
+
+        $.each(window.deck_list, function (card_name, card_amount) {
+
+            var card_data = window.card_pool[card_name];
+
+            if (card_data['Тип'] === 'Предмет') {
+
+                items.push(card_name);
+
+            } else if (card_data['Тип'] === 'Монстр') {
+
+                if (card_data['Размер'] === 'Малый') {
+                    small.push(card_name);
+                } else if (card_data['Размер'] === 'Средний') {
+                    mid.push(card_name);
+                } else if (card_data['Размер'] === 'Большой') {
+                    big.push(card_name);
+                }
+
+            }
+        });
+
+        [
+            {'container': 'deck-list-column-items', 'cards': items},
+            {'container': 'deck-list-column-small', 'cards': small},
+            {'container': 'deck-list-column-mid', 'cards': mid},
+            {'container': 'deck-list-column-big', 'cards': big}
+        ].forEach(function (card_type) {
+
+            var container = card_type['container'];
+            var cards = card_type['cards'];
+
+            cards.sort(function(a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase())
+            });
+
+            var html_text = '';
+
+            cards.forEach(function (card_name) {
+                var card = window.card_pool[card_name];
+
+                html_text += '<div class="deck-list-block-card-box">';
+                html_text += '<img class="deck-list-block-card-img"';
+                html_text += ' id="deck-' + card['Название'] + '"';
+                html_text += ' src="' + card['Картинка'] + '">';
+                html_text += '<div class="deck-list-block-card-nums">';
+
+                var amount_in_deck = get_amount_in_deck(card['Название']);
+
+                cards_total += amount_in_deck;
+
+                html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 0)">0</button>';
+
+                html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 1)"';
+                if (amount_in_deck === 1) {
+                    html_text += ' class="card_amount_in_deck"';
+                }
+                html_text += '>1</button>';
+
+                html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
+                if (amount_in_deck === 2) {
+                    html_text += ' class="card_amount_in_deck"';
+                }
+                html_text += '>2</button>';
+
+                html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 3)"';
+                if (amount_in_deck === 3) {
+                    html_text += ' class="card_amount_in_deck"';
+                }
+                html_text += '>3</button>';
+
+                html_text += '</div>';
+                html_text += '</div>';
+            });
+
+            $('#' + container).html(html_text);
+
+        });
+
+        $('.deck-list-block-card-img').each(function(index, element){
+            var card_name =  $(element).attr('id').substr('deck-'.length);
+            $(element).hover(function () {
+                change_preview(card_name);
+            });
+        });
+
+        $('#deck-total').html(cards_total);
+
+        draw_search_block();
+    }
+
+    function set_card_amount (card_name, amount) {
+
+        if (amount === 0) {
+            delete window.deck_list[card_name];
+        } else {
+            window.deck_list[card_name] = amount;
+        }
+
+        draw_deck_list_block();
+
+    }
+
+    function update_filters () {
+        window.filter['TEXT'] = $('#filter-text').val();
+        window.filter['Тип'] = $('#filter-card-type').val();
+        window.filter['Размер'] = $('#filter-size').val();
+        window.filter['Раса'] = $('#filter-race').val();
+        window.filter['Элемент'] = $('#filter-element').val();
+
+        draw_search_block();
+    }
+
+    function select_filter_page (selected_page) {
+        window.filter['PAGE'] = selected_page;
+        draw_search_block();
+    }
+
+    function draw_search_block () {
+        var search_block_html = '';
+
+        var filtered_cards = Object.values(window.card_pool);
+
+        filtered_cards = filtered_cards.filter(function (card_data) {
+
+            if (window.filter['TEXT']) {
+                if ( ! card_data['Название'].toLowerCase().includes(window.filter['TEXT'].toLowerCase())) {
+                    return false
+                }
+            }
+            if (window.filter['Тип']) {
+                if ( card_data['Тип'] !== window.filter['Тип']) {
+                    return false
+                }
+            }
+            if (window.filter['Размер']) {
+                if ( card_data['Размер'] !== window.filter['Размер']) {
+                    return false
+                }
+            }
+            if (window.filter['Раса']) {
+                if ( card_data['Раса'] !== window.filter['Раса']) {
+                    return false
+                }
+            }
+            if (window.filter['Элемент']) {
+                if ( card_data['Элемент'] !== window.filter['Элемент']) {
+                    return false
+                }
+            }
+
+            return true;
+        });
+
+        var sorted_filtered_cards = filtered_cards;
+        sorted_filtered_cards.sort(function(a, b) {
+            return a['Название'].toLowerCase().localeCompare(b['Название'].toLowerCase())
+        });
+
+        var cards_on_page_start = (window.filter['PAGE'] - 1) * 15;
+        var cards_on_page_end = cards_on_page_start + 15;
+        var cards_on_page = sorted_filtered_cards.slice(cards_on_page_start, cards_on_page_end);
+
+        var pages_block_html = '';
+        if ( window.filter['PAGE'] > 1 ) {
+            pages_block_html += '<button onclick="select_filter_page(1)">|<</button>';
+            pages_block_html += '<button onclick="select_filter_page(' + (window.filter['PAGE'] - 1) + ')">' + (window.filter['PAGE'] - 1) + '</button>';
+        }
+        pages_block_html += '<button class="selected_page">' + window.filter['PAGE'] + '</button>';
+        if ( Math.ceil( sorted_filtered_cards.length / 15 ) > window.filter['PAGE'] ) {
+            pages_block_html += '<button onclick="select_filter_page(' + (window.filter['PAGE'] + 1) + ')">' + (window.filter['PAGE'] + 1) + '</button>';
+            pages_block_html += '<button onclick="select_filter_page(' + Math.ceil( sorted_filtered_cards.length / 15 ) + ')">>|</button>';
+        }
+
+        $('#pages-block').html(pages_block_html);
+
+        cards_on_page.forEach(function (card) {
+            search_block_html += '<div class="search-block-card-box">';
+            search_block_html += '<img class="search-block-card-img"';
+            search_block_html += ' id="search-' + card['Название'] + '"';
+            search_block_html += ' src="' + card['Картинка'] + '">';
+            search_block_html += '<div class="search-block-card-nums">';
+
+            var amount_in_deck = get_amount_in_deck(card['Название']);
+
+            search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 0)">0</button>';
+
+            search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 1)"';
+            if (amount_in_deck === 1) {
+                search_block_html += ' class="card_amount_in_deck"';
+            }
+            search_block_html += '>1</button>';
+
+            search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
+            if (amount_in_deck === 2) {
+                search_block_html += ' class="card_amount_in_deck"';
+            }
+            search_block_html += '>2</button>';
+
+            search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 3)"';
+            if (amount_in_deck === 3) {
+                search_block_html += ' class="card_amount_in_deck"';
+            }
+            search_block_html += '>3</button>';
+
+            search_block_html += '</div>';
+            search_block_html += '</div>';
+        });
+
+        $('#search-block-results').html(search_block_html);
+
+        $('.search-block-card-img').each(function(index, element){
+            var card_name =  $(element).attr('id').substr('search-'.length);
+            $(element).hover(function () {
+                change_preview(card_name);
+            });
+        });    
+    }
+
+    function load_data_from_g_table (callback) {
+        var api_key = 'AIzaSyCbI-zMjgqjt0Ml7C16VCghFj00pYKHUvo';
+        var g_table_id = '13B1j6q_Z60_JQ18EqBOBqyVtdiYzCv6q-rx4Ie-_fzg';
+
+        $.get(
+            'https://sheets.googleapis.com/v4/spreadsheets/' + g_table_id + '/values/Лист1?key=' + api_key,
+            function (response) {
+                window.card_pool = {};
+
+                window.races = [];
+                window.elements = [];
+
+                var response_cards = response.values;
+
+                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент'];
+
+                for (var i = 1; i < response_cards.length; i++) {
+
+                    var response_card_data = response_cards[i];
+
+                    var card_name = response_card_data[0];
+
+                    var card_data = {};
+
+                    headers.forEach(function(header) {card_data[header] = ''});
+
+                    for (var j = 0; j < response_card_data.length; j++) {
+                        var header_iter = headers[j];
+                        card_data[header_iter] = response_card_data[j];
+                    }
+
+                    if (card_data['Раса'] && ! window.races.includes(card_data['Раса'])) {
+                        window.races.push(card_data['Раса']);
+                    }
+                    if (card_data['Элемент'] && ! window.elements.includes(card_data['Элемент'])) {
+                        window.elements.push(card_data['Элемент']);
+                    }
+                    var races_options = '<option value="">Все Расы</option>';
+                    window.races.forEach(function(race_name){
+                        races_options += '<option value="' + race_name + '">' + race_name + '</option>'
+                    });
+                    $('#filter-race').html(races_options);
+                    var elements_options = '<option value="">Все Элементы</option>';
+                    window.elements.forEach(function(element_name){
+                        elements_options += '<option value="' + element_name + '">' + element_name + '</option>'
+                    });
+                    $('#filter-element').html(elements_options);
+
+                    window.card_pool[card_name] = card_data;
+                }
+
+                if (callback) {
+                    callback();
+                }
+            }
+        )
+    }
+
+    window.filter = {
+        'Тип': '',
+        'Раса': '',
+        'Размер': '',
+        'Элемент': '',
+        'TEXT': '',
+        'PAGE': 1
+    };
+
+    window.deck_list = {};
+
+    load_data_from_g_table(draw_search_block);
+
+</script>
+
+</body>
+
+</html>
