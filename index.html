@@ -169,6 +169,26 @@
         #deck-list-column-mid {
             margin-right: 46px;
         }
+
+        .hero-card-img {
+            width: 75px;
+            border: 1px solid black;
+            border-radius: 5px;
+            vertical-align: middle;
+            min-height: 103px;
+            min-width: 75px;
+        }
+
+        .hero-card-img-extra {
+            width: 75px;
+            border: 1px solid black;
+            border-radius: 5px;
+            vertical-align: middle;
+        }
+
+        #hero-container {
+            font-size: 24px;
+        }
     </style>
 </head>
 
@@ -177,6 +197,11 @@
 <div id="main_container">
 
     <div class="main-container-block" id="left-column-block">
+        <div id="hero-container" class="left-colum-block-section">
+            Герой: <img class="hero-card-img" src=""
+                > <img class="hero-card-img-extra" style="display: none" src="">
+        </div>
+
         <div id="deck-total-container" class="left-colum-block-section">
             Всего карт в колоде: <span id="deck-total">0</span>
         </div>
@@ -220,6 +245,7 @@
 
         <select class="search-block-filter-item" id="filter-card-type" onchange="update_filters()">
             <option value="">Все Типы</option>
+            <option value="Герой">Герой</option>
             <option value="Монстр">Монстр</option>
             <option value="Предмет">Предмет</option>
         </select>
@@ -231,6 +257,14 @@
             <option value="Малый">Малый</option>
             <option value="Средний">Средний</option>
             <option value="Большой">Большой</option>
+        </select>
+
+        <br>
+
+        <select class="search-block-filter-item" id="filter-boss" onchange="update_filters()">
+            <option value="">Босс: неважно</option>
+            <option value="Да">Босс: Да</option>
+            <option value="Нет">Босс: Нет</option>
         </select>
 
         <br>
@@ -260,6 +294,18 @@
 <script>
 
     function import_to_text () {
+
+        var text_for_textarea = '';
+
+        if (window.hero) {
+            text_for_textarea += '1 ' + window.hero;
+
+            if (window.hero == 'Охотник') {
+                text_for_textarea += '\n';
+                text_for_textarea += '1 Компаньон';
+            }
+        }
+
         var items = [];
         var small = [];
         var mid = [];
@@ -284,8 +330,6 @@
 
             }
         });
-
-        var text_for_textarea = '';
 
         [
             items,
@@ -321,8 +365,14 @@
                 amount = parseInt(amount);
                 var name = split_arr.join(' ');
 
-                if (name in window.card_pool) {
-                    window.deck_list[name] = amount;
+                if (name != 'Компаньон') {
+                    if (name in window.card_pool) {
+                        if (window.card_pool[name]['Тип'] === 'Герой') {
+                            window.hero = name;
+                        } else {
+                            window.deck_list[name] = amount;
+                        }
+                    }
                 }
             }
         });
@@ -348,6 +398,21 @@
     function draw_deck_list_block () {
 
         clear_textarea();
+
+        if (window.hero) {
+            var hero_card_data = window.card_pool[window.hero];
+            $('.hero-card-img').attr('src', hero_card_data['Картинка']);
+        } else {
+            $('.hero-card-img').attr('src', '');
+        }
+
+        if (window.hero == 'Охотник') {
+            $('.hero-card-img-extra').attr('src', window.card_pool['Компаньон']['Картинка']);
+            $('.hero-card-img-extra').show();
+        } else {
+            $('.hero-card-img-extra').hide();
+            $('.hero-card-img-extra').attr('src', '');
+        }
 
         var items = [];
         var small = [];
@@ -414,17 +479,19 @@
                 }
                 html_text += '>1</button>';
 
-                html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
-                if (amount_in_deck === 2) {
-                    html_text += ' class="card_amount_in_deck"';
-                }
-                html_text += '>2</button>';
+                if ( card['Тип'] != 'Герой' && card['Босс'] != 'Да' ) {
+                    html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
+                    if (amount_in_deck === 2) {
+                        html_text += ' class="card_amount_in_deck"';
+                    }
+                    html_text += '>2</button>';
 
-                html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 3)"';
-                if (amount_in_deck === 3) {
-                    html_text += ' class="card_amount_in_deck"';
+                    html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 3)"';
+                    if (amount_in_deck === 3) {
+                        html_text += ' class="card_amount_in_deck"';
+                    }
+                    html_text += '>3</button>';
                 }
-                html_text += '>3</button>';
 
                 html_text += '</div>';
                 html_text += '</div>';
@@ -448,10 +515,20 @@
 
     function set_card_amount (card_name, amount) {
 
-        if (amount === 0) {
-            delete window.deck_list[card_name];
+        var card_data = window.card_pool[card_name];
+
+        if (card_data['Тип'] == 'Герой') {
+            if (amount === 0) {
+                window.hero = '';
+            } else {
+                window.hero = card_name;
+            }
         } else {
-            window.deck_list[card_name] = amount;
+            if (amount === 0) {
+                delete window.deck_list[card_name];
+            } else {
+                window.deck_list[card_name] = amount;
+            }
         }
 
         draw_deck_list_block();
@@ -464,6 +541,7 @@
         window.filter['Размер'] = $('#filter-size').val();
         window.filter['Раса'] = $('#filter-race').val();
         window.filter['Элемент'] = $('#filter-element').val();
+        window.filter['Босс'] = $('#filter-boss').val();
 
         draw_search_block();
     }
@@ -479,6 +557,10 @@
         var filtered_cards = Object.values(window.card_pool);
 
         filtered_cards = filtered_cards.filter(function (card_data) {
+
+            if (card_data['Название'] == 'Компаньон') {
+                return false
+            }
 
             if (window.filter['TEXT']) {
                 if ( ! card_data['Название'].toLowerCase().includes(window.filter['TEXT'].toLowerCase())) {
@@ -502,6 +584,14 @@
             }
             if (window.filter['Элемент']) {
                 if ( card_data['Элемент'] !== window.filter['Элемент']) {
+                    return false
+                }
+            }
+            if (window.filter['Босс']) {
+                if (window.filter['Босс'] == 'Да' && card_data['Босс'] != 'Да') {
+                    return false
+                }
+                if (window.filter['Босс'] == 'Нет' && card_data['Босс'] == 'Да') {
                     return false
                 }
             }
@@ -543,22 +633,30 @@
             search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 0)">0</button>';
 
             search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 1)"';
-            if (amount_in_deck === 1) {
-                search_block_html += ' class="card_amount_in_deck"';
+            if (card['Тип'] == 'Герой') {
+                if (card['Название'] == window.hero) {
+                    search_block_html += ' class="card_amount_in_deck"';
+                }
+            } else {
+                if (amount_in_deck === 1) {
+                    search_block_html += ' class="card_amount_in_deck"';
+                }
             }
             search_block_html += '>1</button>';
 
-            search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
-            if (amount_in_deck === 2) {
-                search_block_html += ' class="card_amount_in_deck"';
-            }
-            search_block_html += '>2</button>';
+            if ( card['Тип'] != 'Герой' && card['Босс'] != 'Да' ) {
+                search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
+                if (amount_in_deck === 2) {
+                    search_block_html += ' class="card_amount_in_deck"';
+                }
+                search_block_html += '>2</button>';
 
-            search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 3)"';
-            if (amount_in_deck === 3) {
-                search_block_html += ' class="card_amount_in_deck"';
+                search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 3)"';
+                if (amount_in_deck === 3) {
+                    search_block_html += ' class="card_amount_in_deck"';
+                }
+                search_block_html += '>3</button>';
             }
-            search_block_html += '>3</button>';
 
             search_block_html += '</div>';
             search_block_html += '</div>';
@@ -588,7 +686,7 @@
 
                 var response_cards = response.values;
 
-                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент'];
+                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент', 'Босс'];
 
                 for (var i = 1; i < response_cards.length; i++) {
 
@@ -638,10 +736,24 @@
         'Размер': '',
         'Элемент': '',
         'TEXT': '',
+        'Босс': '',
         'PAGE': 1
     };
 
     window.deck_list = {};
+
+    window.hero = '';
+
+    $('.hero-card-img').hover(function () {
+        if (window.hero) {
+            change_preview(window.hero);
+        }
+    });
+    $('.hero-card-img-extra').hover(function () {
+        if (window.hero === 'Охотник') {
+            change_preview('Компаньон');
+        }
+    });
 
     load_data_from_g_table(draw_search_block);
 
