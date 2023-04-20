@@ -281,6 +281,12 @@
 
         <br>
 
+        <select class="search-block-filter-item" id="filter-subtype" onchange="update_filters()">
+            <option value="">Подтип: неважно</option>
+        </select>
+
+        <br>
+
         <div id="pages-block">
         </div>
 
@@ -542,6 +548,7 @@
         window.filter['Раса'] = $('#filter-race').val();
         window.filter['Элемент'] = $('#filter-element').val();
         window.filter['Босс'] = $('#filter-boss').val();
+        window.filter['Подтип'] = $('#filter-subtype').val();
 
         draw_search_block();
     }
@@ -592,6 +599,11 @@
                     return false
                 }
                 if (window.filter['Босс'] == 'Нет' && card_data['Босс'] == 'Да') {
+                    return false
+                }
+            }
+            if (window.filter['Подтип']) {
+                if ( ! card_data['Подтип'].includes(window.filter['Подтип'])) {
                     return false
                 }
             }
@@ -683,10 +695,11 @@
 
                 window.races = [];
                 window.elements = [];
+                window.subtypes = [];
 
                 var response_cards = response.values;
 
-                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент', 'Босс'];
+                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент', 'Босс', 'Подтип'];
 
                 for (var i = 1; i < response_cards.length; i++) {
 
@@ -700,7 +713,17 @@
 
                     for (var j = 0; j < response_card_data.length; j++) {
                         var header_iter = headers[j];
-                        card_data[header_iter] = response_card_data[j];
+                        if (header_iter === 'Подтип') {
+                            var sub_types = response_card_data[j];
+                            if (sub_types) {
+                                sub_types = sub_types.split(',');
+                            } else {
+                                sub_types = [];
+                            }
+                            card_data[header_iter] = sub_types;
+                        } else {
+                            card_data[header_iter] = response_card_data[j];
+                        }
                     }
 
                     if (card_data['Раса'] && ! window.races.includes(card_data['Раса'])) {
@@ -708,6 +731,13 @@
                     }
                     if (card_data['Элемент'] && ! window.elements.includes(card_data['Элемент'])) {
                         window.elements.push(card_data['Элемент']);
+                    }
+                    if (card_data['Подтип']) {
+                        card_data['Подтип'].forEach(function (card_sub_type) {
+                            if ( ! window.subtypes.includes(card_sub_type)) {
+                                window.subtypes.push(card_sub_type);
+                            }
+                        });
                     }
                     var races_options = '<option value="">Все Расы</option>';
                     window.races.forEach(function(race_name){
@@ -719,6 +749,11 @@
                         elements_options += '<option value="' + element_name + '">' + element_name + '</option>'
                     });
                     $('#filter-element').html(elements_options);
+                    var subtypes_options = '<option value="">Подтип: неважно</option>';
+                    window.subtypes.forEach(function(subtype_name){
+                        subtypes_options += '<option value="' + subtype_name + '">' + subtype_name + '</option>'
+                    });
+                    $('#filter-subtype').html(subtypes_options);
 
                     window.card_pool[card_name] = card_data;
                 }
@@ -737,6 +772,7 @@
         'Элемент': '',
         'TEXT': '',
         'Босс': '',
+        'Подтип': '',
         'PAGE': 1
     };
 
