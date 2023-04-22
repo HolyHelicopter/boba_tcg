@@ -189,6 +189,18 @@
         #hero-container {
             font-size: 24px;
         }
+
+        .imperium-card-img {
+            width: 75px;
+            border: 1px solid black;
+            border-radius: 5px;
+            vertical-align: middle;
+            min-height: 103px;
+            min-width: 75px;
+        }
+        #imperium-container {
+            font-size: 24px;
+        }
     </style>
 </head>
 
@@ -200,6 +212,10 @@
         <div id="hero-container" class="left-colum-block-section">
             Герой: <img class="hero-card-img" src=""
                 > <img class="hero-card-img-extra" style="display: none" src="">
+        </div>
+
+        <div id="imperium-container" class="left-colum-block-section">
+            Империум: <img class="imperium-card-img" src="">
         </div>
 
         <div id="deck-total-container" class="left-colum-block-section">
@@ -246,6 +262,7 @@
         <select class="search-block-filter-item" id="filter-card-type" onchange="update_filters()">
             <option value="">Все Типы</option>
             <option value="Герой">Герой</option>
+            <option value="Империум">Империум</option>
             <option value="Монстр">Монстр</option>
             <option value="Предмет">Предмет</option>
         </select>
@@ -311,6 +328,12 @@
                 text_for_textarea += '1 Компаньон';
             }
         }
+        if (window.imperium) {
+            if (text_for_textarea) {
+                text_for_textarea += '\n';
+            }
+            text_for_textarea += '1 ' + window.imperium;
+        }
 
         var items = [];
         var small = [];
@@ -375,6 +398,8 @@
                     if (name in window.card_pool) {
                         if (window.card_pool[name]['Тип'] === 'Герой') {
                             window.hero = name;
+                        } else if (window.card_pool[name]['Тип'] === 'Империум') {
+                            window.imperium = name;
                         } else {
                             window.deck_list[name] = amount;
                         }
@@ -418,6 +443,13 @@
         } else {
             $('.hero-card-img-extra').hide();
             $('.hero-card-img-extra').attr('src', '');
+        }
+
+        if (window.imperium) {
+            var imperium_card_data = window.card_pool[window.imperium];
+            $('.imperium-card-img').attr('src', imperium_card_data['Картинка']);
+        } else {
+            $('.imperium-card-img').attr('src', '');
         }
 
         var items = [];
@@ -485,7 +517,7 @@
                 }
                 html_text += '>1</button>';
 
-                if ( card['Тип'] != 'Герой' && card['Босс'] != 'Да' ) {
+                if ( card['Тип'] != 'Герой' && card['Тип'] != 'Империум' && card['Босс'] != 'Да' ) {
                     html_text += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
                     if (amount_in_deck === 2) {
                         html_text += ' class="card_amount_in_deck"';
@@ -528,6 +560,12 @@
                 window.hero = '';
             } else {
                 window.hero = card_name;
+            }
+        } else if (card_data['Тип'] == 'Империум') {
+            if (amount === 0) {
+                window.imperium = '';
+            } else {
+                window.imperium = card_name;
             }
         } else {
             if (amount === 0) {
@@ -649,6 +687,10 @@
                 if (card['Название'] == window.hero) {
                     search_block_html += ' class="card_amount_in_deck"';
                 }
+            } else if (card['Тип'] == 'Империум') {
+                if (card['Название'] == window.imperium) {
+                    search_block_html += ' class="card_amount_in_deck"';
+                }
             } else {
                 if (amount_in_deck === 1) {
                     search_block_html += ' class="card_amount_in_deck"';
@@ -656,7 +698,7 @@
             }
             search_block_html += '>1</button>';
 
-            if ( card['Тип'] != 'Герой' && card['Босс'] != 'Да' ) {
+            if ( card['Тип'] != 'Герой' && card['Тип'] != 'Империум' && card['Босс'] != 'Да' ) {
                 search_block_html += '<button onclick="set_card_amount(' + "'" + card['Название'] + "'" + ', 2)"';
                 if (amount_in_deck === 2) {
                     search_block_html += ' class="card_amount_in_deck"';
@@ -739,24 +781,29 @@
                             }
                         });
                     }
-                    var races_options = '<option value="">Все Расы</option>';
-                    window.races.forEach(function(race_name){
-                        races_options += '<option value="' + race_name + '">' + race_name + '</option>'
-                    });
-                    $('#filter-race').html(races_options);
-                    var elements_options = '<option value="">Все Элементы</option>';
-                    window.elements.forEach(function(element_name){
-                        elements_options += '<option value="' + element_name + '">' + element_name + '</option>'
-                    });
-                    $('#filter-element').html(elements_options);
-                    var subtypes_options = '<option value="">Подтип: неважно</option>';
-                    window.subtypes.forEach(function(subtype_name){
-                        subtypes_options += '<option value="' + subtype_name + '">' + subtype_name + '</option>'
-                    });
-                    $('#filter-subtype').html(subtypes_options);
 
                     window.card_pool[card_name] = card_data;
                 }
+
+                window.races.sort();
+                window.elements.sort();
+                window.subtypes.sort();
+
+                var races_options = '<option value="">Все Расы</option>';
+                window.races.forEach(function(race_name){
+                    races_options += '<option value="' + race_name + '">' + race_name + '</option>'
+                });
+                $('#filter-race').html(races_options);
+                var elements_options = '<option value="">Все Элементы</option>';
+                window.elements.forEach(function(element_name){
+                    elements_options += '<option value="' + element_name + '">' + element_name + '</option>'
+                });
+                $('#filter-element').html(elements_options);
+                var subtypes_options = '<option value="">Подтип: неважно</option>';
+                window.subtypes.forEach(function(subtype_name){
+                    subtypes_options += '<option value="' + subtype_name + '">' + subtype_name + '</option>'
+                });
+                $('#filter-subtype').html(subtypes_options);
 
                 if (callback) {
                     callback();
@@ -779,6 +826,7 @@
     window.deck_list = {};
 
     window.hero = '';
+    window.imperium = '';
 
     $('.hero-card-img').hover(function () {
         if (window.hero) {
@@ -788,6 +836,11 @@
     $('.hero-card-img-extra').hover(function () {
         if (window.hero === 'Охотник') {
             change_preview('Компаньон');
+        }
+    });
+    $('.imperium-card-img').hover(function () {
+        if (window.imperium) {
+            change_preview(window.imperium);
         }
     });
 
