@@ -259,6 +259,10 @@
 
         <br>
 
+        <input type="text" class="search-block-filter-item" id="filter-text-ability" placeholder="поиск по тексту" onchange="update_filters()">
+
+        <br>
+
         <select class="search-block-filter-item" id="filter-card-type" onchange="update_filters()">
             <option value="">Все Типы</option>
             <option value="Герой">Герой</option>
@@ -315,6 +319,22 @@
 </div>
 
 <script>
+
+    function clean_text_for_filter (text_to_clean) {
+        var allowed_symbols = '[]0123456789АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯяabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        var clean_text = '';
+
+        for (var i = 0; i < text_to_clean.length; i++) {
+            if ( allowed_symbols.includes(text_to_clean[i]) ) {
+                clean_text += text_to_clean[i];
+            }
+        }
+
+        clean_text = clean_text.toLowerCase();
+
+        return clean_text;
+    }
 
     function import_to_text () {
 
@@ -581,6 +601,7 @@
 
     function update_filters () {
         window.filter['TEXT'] = $('#filter-text').val();
+        window.filter['TEXT_ABILITY'] = clean_text_for_filter($('#filter-text-ability').val());
         window.filter['Тип'] = $('#filter-card-type').val();
         window.filter['Размер'] = $('#filter-size').val();
         window.filter['Раса'] = $('#filter-race').val();
@@ -609,6 +630,11 @@
 
             if (window.filter['TEXT']) {
                 if ( ! card_data['Название'].toLowerCase().includes(window.filter['TEXT'].toLowerCase())) {
+                    return false
+                }
+            }
+            if (window.filter['TEXT_ABILITY']) {
+                if ( ! card_data['Текст'].includes(window.filter['TEXT_ABILITY'])) {
                     return false
                 }
             }
@@ -741,7 +767,7 @@
 
                 var response_cards = response.values;
 
-                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент', 'Босс', 'Подтип'];
+                var headers = ['Название', 'Картинка', 'Тип', 'Раса', 'Размер', 'Элемент', 'Босс', 'Подтип', 'Текст'];
 
                 for (var i = 1; i < response_cards.length; i++) {
 
@@ -763,6 +789,8 @@
                                 sub_types = [];
                             }
                             card_data[header_iter] = sub_types;
+                        } else if (header_iter === 'Текст') {
+                            card_data[header_iter] = clean_text_for_filter(response_card_data[j]);
                         } else {
                             card_data[header_iter] = response_card_data[j];
                         }
@@ -818,6 +846,7 @@
         'Размер': '',
         'Элемент': '',
         'TEXT': '',
+        'TEXT_ABILITY': '',
         'Босс': '',
         'Подтип': '',
         'PAGE': 1
