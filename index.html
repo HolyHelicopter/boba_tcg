@@ -160,8 +160,14 @@
             min-height: 10px;
         }
 
+        /*
         #deck-list-column-items {
             margin-left: 46px;
+        }
+        */
+
+        #deck-list-column-small {
+            margin-left: 119px;
         }
 
         #deck-list-column-items,
@@ -214,9 +220,11 @@
                 > <img class="hero-card-img-extra" style="display: none" src="">
         </div>
 
+        <!--
         <div id="imperium-container" class="left-colum-block-section">
             Империум: <img class="imperium-card-img" src="">
         </div>
+        -->
 
         <div id="deck-total-container" class="left-colum-block-section">
             Всего карт в колоде: <span id="deck-total">0</span>
@@ -237,8 +245,10 @@
 
         <div id="deck-list-block-upper">
 
+            <!--
             <div class="deck-list-column" id="deck-list-column-items">
             </div>
+            -->
 
             <div class="deck-list-column" id="deck-list-column-small">
             </div>
@@ -266,9 +276,9 @@
         <select class="search-block-filter-item" id="filter-card-type" onchange="update_filters()">
             <option value="">Все Типы</option>
             <option value="Герой">Герой</option>
-            <option value="Империум">Империум</option>
+            <!-- <option value="Империум">Империум</option> -->
             <option value="Монстр">Монстр</option>
-            <option value="Предмет">Предмет</option>
+            <!-- <option value="Предмет">Предмет</option> -->
         </select>
 
         <br>
@@ -280,6 +290,7 @@
             <option value="Большой">Большой</option>
         </select>
 
+        <!--
         <br>
 
         <select class="search-block-filter-item" id="filter-boss" onchange="update_filters()">
@@ -287,6 +298,7 @@
             <option value="Да">Босс: Да</option>
             <option value="Нет">Босс: Нет</option>
         </select>
+        -->
 
         <br>
 
@@ -343,17 +355,21 @@
         if (window.hero) {
             text_for_textarea += '1 ' + window.hero;
 
+            /*
             if (window.hero == 'Охотник') {
                 text_for_textarea += '\n';
                 text_for_textarea += '1 Компаньон';
             }
+            */
         }
+        /*
         if (window.imperium) {
             if (text_for_textarea) {
                 text_for_textarea += '\n';
             }
             text_for_textarea += '1 ' + window.imperium;
         }
+        */
 
         var items = [];
         var small = [];
@@ -414,15 +430,13 @@
                 amount = parseInt(amount);
                 var name = split_arr.join(' ');
 
-                if (name != 'Компаньон') {
-                    if (name in window.card_pool) {
-                        if (window.card_pool[name]['Тип'] === 'Герой') {
-                            window.hero = name;
-                        } else if (window.card_pool[name]['Тип'] === 'Империум') {
-                            window.imperium = name;
-                        } else {
-                            window.deck_list[name] = amount;
-                        }
+                if (name in window.card_pool) {
+                    if (window.card_pool[name]['Тип'] === 'Герой') {
+                        window.hero = name;
+                    } else if (window.card_pool[name]['Тип'] === 'Империум') {
+                        window.imperium = name;
+                    } else {
+                        window.deck_list[name] = amount;
                     }
                 }
             }
@@ -455,14 +469,6 @@
             $('.hero-card-img').attr('src', hero_card_data['Картинка']);
         } else {
             $('.hero-card-img').attr('src', '');
-        }
-
-        if (window.hero == 'Охотник') {
-            $('.hero-card-img-extra').attr('src', window.card_pool['Компаньон']['Картинка']);
-            $('.hero-card-img-extra').show();
-        } else {
-            $('.hero-card-img-extra').hide();
-            $('.hero-card-img-extra').attr('src', '');
         }
 
         if (window.imperium) {
@@ -623,10 +629,6 @@
         var filtered_cards = Object.values(window.card_pool);
 
         filtered_cards = filtered_cards.filter(function (card_data) {
-
-            if (card_data['Название'] == 'Компаньон') {
-                return false
-            }
 
             if (window.filter['TEXT']) {
                 if ( ! card_data['Название'].toLowerCase().includes(window.filter['TEXT'].toLowerCase())) {
@@ -855,7 +857,7 @@
     window.deck_list = {};
 
     window.hero = '';
-    window.imperium = '';
+    /* window.imperium = ''; */
 
     $('.hero-card-img').hover(function () {
         if (window.hero) {
@@ -863,15 +865,19 @@
         }
     });
     $('.hero-card-img-extra').hover(function () {
+        /*
         if (window.hero === 'Охотник') {
             change_preview('Компаньон');
         }
+        */
     });
+    /*
     $('.imperium-card-img').hover(function () {
         if (window.imperium) {
             change_preview(window.imperium);
         }
     });
+    */
 
     load_data_from_g_table(draw_search_block);
 
